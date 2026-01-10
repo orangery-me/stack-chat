@@ -7,6 +7,7 @@ import * as path from 'path';
 import { DatabaseModule } from '@app/config/database.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { KeepAliveModule } from './modules/keep-alive/keep-alive.module';
+import { WsModule } from './modules/ws/ws.module';
 import * as Joi from 'joi';
 
 @Module({
@@ -33,6 +34,9 @@ import * as Joi from 'joi';
         // Database
         MONGODB_URI: Joi.string().required(),
 
+        // Stack API URL (for microservice communication)
+        STACK_API_URL: Joi.string().required(),
+
         // Features
         ENABLE_SWAGGER: Joi.boolean().default(true),
         ENABLE_CORS: Joi.boolean().default(true),
@@ -49,6 +53,7 @@ import * as Joi from 'joi';
     }),
     DatabaseModule,
     KeepAliveModule,
+    WsModule,
   ],
   providers: [
     {
