@@ -20,7 +20,6 @@
       "@Helper/*": ["src/common/helper/*"],
       "@PermissionsModule/*": ["src/modules/permissions/*"],
       "@RolesModule/*": ["src/modules/roles/*"],
-      "@UsersModule/*": ["src/modules/users/*"],
       "@Library/*": ["src/libraries/*"],
       "@app/*": ["src/*"]
     },
