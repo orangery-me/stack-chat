@@ -34,8 +34,9 @@ import * as Joi from 'joi';
         // Database
         MONGODB_URI: Joi.string().required(),
 
-        // Stack API URL (for microservice communication)
-        STACK_API_URL: Joi.string().required(),
+        // Stack API URLs (for microservice communication)
+        // STACK_API_URL: Joi.string().required(),
+        STACK_API_GRPC_URL: Joi.string().default('localhost:50051'),
 
         // Features
         ENABLE_SWAGGER: Joi.boolean().default(true),
