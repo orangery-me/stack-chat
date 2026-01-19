@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { AbstractEntity } from '../abstract.entity';
 import { Types } from 'mongoose';
+import { applyBaseSchemaTransform } from '@app/helpers/transform';
 
 export enum MessageType {
   TEXT = 'text',
@@ -20,8 +21,8 @@ export class ChatMessageEntity extends AbstractEntity {
   @Prop({ type: Types.ObjectId, ref: 'Workspace' })
   workspaceId: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Conversation' })
-  conversationId: string;
+  @Prop({ type: Types.ObjectId, ref: 'Channel' })
+  channelId: string;
 
   @Prop({ type: String })
   content: string;
@@ -34,3 +35,4 @@ export class ChatMessageEntity extends AbstractEntity {
 }
 
 export const ChatMessageSchema = SchemaFactory.createForClass(ChatMessageEntity);
+applyBaseSchemaTransform(ChatMessageSchema);

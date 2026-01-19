@@ -12,24 +12,39 @@ export class ChatService {
     private readonly apiClientService: ApiClientService
   ) {}
 
-  async saveMessage(
-    senderId: string,
-    workspaceId: string,
-    conversationId: string,
-    content: string,
-    type: MessageType = MessageType.TEXT
-  ): Promise<ChatMessageEntity> {
-    // Verify user membership via gRPC (stack-api)
+  async sendChannelMessage(senderId, workspaceId, channelId, content) {
+    // Check permission
     await this.apiClientService.verifyWorkspaceMembership(senderId, workspaceId);
 
-    const message = await this.chatMessageModel.create({
+    return this.chatMessageModel.create({
       senderId,
       workspaceId,
-      conversationId,
+      channelId,
       content,
-      type,
+      type: MessageType.TEXT,
     });
+  }
 
-    return message;
+  async getMessagesByChannelId(channelId: string, size = 20, page = 1): Promise<{ messages: any[]; hasMore: boolean }> {
+    const messages = await this.chatMessageModel
+      .find({ channelId })
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * size)
+      .limit(size);
+
+    const hasMore = messages.length === size;
+
+    // Return in chronological order
+    return {
+      messages: messages.reverse().map((m) => ({
+        id: m.id,
+        senderId: m.senderId,
+        senderName: 'User', // TODO: lookup user name
+        content: m.content,
+        createdAt: m.createdAt,
+        channelId: m.channelId,
+      })),
+      hasMore,
+    };
   }
 }
