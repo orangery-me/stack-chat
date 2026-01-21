@@ -12,7 +12,7 @@ interface WorkspaceServiceClient {
 }
 
 @Injectable()
-export class ApiClientService implements OnModuleInit {
+export class WorkspaceClientService implements OnModuleInit {
   private workspaceService: WorkspaceServiceClient;
 
   constructor(@Inject('WORKSPACE_PACKAGE') private readonly client: ClientGrpc) {}

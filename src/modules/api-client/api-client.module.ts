@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { join } from 'path';
-import { ApiClientService } from './api-client.service';
+import { WorkspaceClientService } from './workspace-client.service';
+import { UserClientService } from './user-client.service';
 
 @Module({
   imports: [
@@ -21,9 +22,22 @@ import { ApiClientService } from './api-client.service';
           },
         }),
       },
+      {
+        name: 'USER_PACKAGE',
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.GRPC,
+          options: {
+            package: 'user',
+            protoPath: join(process.cwd(), 'proto', 'user.proto'),
+            url: configService.get<string>('STACK_API_GRPC_URL', 'localhost:50051'),
+          },
+        }),
+      },
     ]),
   ],
-  providers: [ApiClientService],
-  exports: [ApiClientService],
+  providers: [WorkspaceClientService, UserClientService],
+  exports: [WorkspaceClientService, UserClientService],
 })
 export class ApiClientModule {}

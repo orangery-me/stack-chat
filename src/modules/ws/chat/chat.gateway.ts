@@ -10,13 +10,18 @@ import {
 } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
 import { ChatService } from './chat.service';
+import { UserClientService } from '@app/modules/api-client/user-client.service';
 
 @WebSocketGateway({
   cors: { origin: '*' },
   namespace: '/chat',
 })
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-  constructor(private readonly jwtService: JwtService, private readonly chatService: ChatService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly chatService: ChatService,
+    private readonly userClientService: UserClientService
+  ) {}
 
   afterInit() {
     console.log('Chat gateway initialized');
@@ -57,16 +62,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   ) {
     const userId = client?.data?.user?.userId || client?.data?.user?.sub;
 
-    console.log('[Chat Gateway] 📥 Received send_channel_message:', {
-      userId,
-      channelId: data.channelId,
-      workspaceId: data.workspaceId,
-      content: data.content?.substring(0, 50) + (data.content?.length > 50 ? '...' : ''),
-      clientId: client.id,
-    });
-
     if (!userId) {
-      console.log('[Chat Gateway] ❌ Unauthorized: No userId found');
       client.emit('error', { message: 'Unauthorized' });
       return;
     }
@@ -74,26 +70,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     try {
       const message = await this.chatService.sendChannelMessage(userId, data.workspaceId, data.channelId, data.content);
 
-      console.log('[Chat Gateway] 💾 Message saved to database:', {
-        messageId: message.id,
-        channelId: message.channelId,
-        senderId: message.senderId,
-      });
-
       const room = `channel:${data.channelId}`;
       client.join(room);
-
-      console.log('[Chat Gateway] 📤 Broadcasting new_message to room:', {
-        room,
-        messageId: message.id,
-        channelId: message.channelId,
-      });
+      // send message to all clients in the room
       client.to(room).emit('new_message', message);
-
-      console.log('[Chat Gateway] ✅ Sending message_sent confirmation to sender:', {
-        clientId: client.id,
-        messageId: message.id,
-      });
+      // send confirmation to sender
       client.emit('message_sent', message);
     } catch (error: any) {
       console.error('[Chat Gateway] ❌ Error sending message:', {
