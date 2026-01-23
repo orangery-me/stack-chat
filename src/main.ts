@@ -4,7 +4,7 @@ import { join } from 'path';
 import { AppModule } from '@app/app.module';
 
 async function bootstrap() {
-  const grpcPort = process.env.GRPC_PORT || 50052;
+  const grpcPort = process.env.GRPC_PORT || 50051;
 
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
     transport: Transport.GRPC,
