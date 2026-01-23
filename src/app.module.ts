@@ -7,7 +7,7 @@ import * as path from 'path';
 import { DatabaseModule } from '@app/config/database.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { KeepAliveModule } from './modules/keep-alive/keep-alive.module';
-import { WsModule } from './modules/ws/ws.module';
+import { ChatModule } from './modules/chat/chat.module';
 import * as Joi from 'joi';
 
 @Module({
@@ -27,19 +27,13 @@ import * as Joi from 'joi';
     }),
     ConfigModule.forRoot({
       validationSchema: Joi.object({
-        // Application
-        APP_PORT: Joi.number().default(3000),
-        NODE_ENV: Joi.string().valid('development', 'staging', 'production').default('development'),
-
         // Database
         MONGODB_URI: Joi.string().required(),
 
-        // Stack API URLs (for microservice communication)
-        // STACK_API_URL: Joi.string().required(),
-        STACK_API_GRPC_URL: Joi.string().default('localhost:50051'),
+        // gRPC server port for this service
+        GRPC_PORT: Joi.number().default(50052),
 
         // Features
-        ENABLE_SWAGGER: Joi.boolean().default(true),
         ENABLE_CORS: Joi.boolean().default(true),
         ENABLE_RATE_LIMITING: Joi.boolean().default(false),
 
@@ -54,7 +48,7 @@ import * as Joi from 'joi';
     }),
     DatabaseModule,
     KeepAliveModule,
-    WsModule,
+    ChatModule, // Pure gRPC chat service - NO WebSocket, NO API client dependencies
   ],
   providers: [
     {
