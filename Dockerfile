@@ -2,11 +2,17 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
 
-COPY package*.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+# Add build tools
+RUN apk add --no-cache python3 make g++
+
+RUN corepack enable
+RUN corepack prepare pnpm@latest --activate
+
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 COPY . .
-RUN yarn build
+RUN pnpm build
 
 # Production stage
 FROM node:22-alpine AS production
@@ -16,18 +22,19 @@ RUN apk add --no-cache dumb-init \
     && addgroup -g 1001 -S nodejs \
     && adduser -S nestjs -u 1001
 
-COPY package*.json yarn.lock ./
-RUN yarn install --frozen-lockfile --production=true && yarn cache clean
+RUN corepack enable
+RUN corepack prepare pnpm@latest --activate
 
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
-COPY --from=builder --chown=nestjs:nodejs /app/public ./public
+# COPY --from=builder --chown=nestjs:nodejs /app/public ./public
 COPY --from=builder --chown=nestjs:nodejs /app/src/i18n ./src/i18n
 
 USER nestjs
 
-EXPOSE 8080
+EXPOSE 50051
 ENV NODE_ENV=production
-ENV PORT=8080
+ENV PORT=50051
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "dist/main.js"]
