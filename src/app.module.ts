@@ -31,7 +31,7 @@ import * as Joi from 'joi';
         MONGODB_URI: Joi.string().required(),
 
         // gRPC server port for this service
-        GRPC_PORT: Joi.number().default(50052),
+        GRPC_PORT: Joi.number().default(50051),
 
         // Features
         ENABLE_CORS: Joi.boolean().default(true),
