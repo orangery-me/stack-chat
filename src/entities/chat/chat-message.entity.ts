@@ -18,10 +18,10 @@ export class ChatMessageEntity extends AbstractEntity {
   @Prop({ type: Types.ObjectId, ref: 'User' })
   senderId: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Workspace' })
+  @Prop({ type: Types.ObjectId, ref: 'Workspace', index: true })
   workspaceId: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Channel' })
+  @Prop({ type: Types.ObjectId, ref: 'Channel', index: true })
   channelId: string;
 
   @Prop({ type: String })
@@ -35,4 +35,5 @@ export class ChatMessageEntity extends AbstractEntity {
 }
 
 export const ChatMessageSchema = SchemaFactory.createForClass(ChatMessageEntity);
+ChatMessageSchema.index({ channelId: 1, createdAt: -1 });
 applyBaseSchemaTransform(ChatMessageSchema);

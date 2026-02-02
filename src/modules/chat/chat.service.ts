@@ -51,22 +51,24 @@ export class ChatService {
     };
   }
 
-  /**
-   * Get messages by channel ID - NO verification, trusts request from stack-api
-   */
   async getMessagesByChannelId(channelId: string, size = 20, page = 1): Promise<GetMessagesResponse> {
+    const limit = size + 1; // fetch one extra row to check hasMore cheaply
+
     const messages = await this.chatMessageModel
       .find({ channelId })
       .sort({ createdAt: -1 })
       .skip((page - 1) * size)
-      .limit(size);
+      .limit(limit)
+      .select(['senderId', 'content', 'createdAt', 'channelId'])
+      // Return plain objects instead of Mongoose Documents
+      .lean();
 
-    const hasMore = messages.length === size;
+    const hasMore = messages.length === limit;
+    const sliced = hasMore ? messages.slice(0, size) : messages;
 
-    // Return in chronological order
     return {
-      messages: messages.reverse().map((m) => ({
-        id: m.id,
+      messages: sliced.map((m: any) => ({
+        id: m._id?.toString?.() ?? m.id,
         senderId: m.senderId,
         senderName: '', // Will be populated by stack-api if needed
         senderEmail: '',
