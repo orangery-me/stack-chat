@@ -20,6 +20,7 @@ interface SendMessageResponse {
   senderEmail: string;
   senderAvatar: string;
   content: string;
+  messageType: string;
   createdAt: string;
   channelId: string;
 }
@@ -37,6 +38,7 @@ interface MessageItem {
   senderEmail: string;
   senderAvatar: string;
   content: string;
+  messageType: string;
   createdAt: string;
   channelId: string;
 }
@@ -70,6 +72,7 @@ export class ChatGrpcController {
       senderEmail: result.senderEmail,
       senderAvatar: result.senderAvatar,
       content: result.content,
+      messageType: result.messageType,
       createdAt: result.createdAt.toISOString(),
       channelId: result.channelId,
     };
@@ -90,6 +93,7 @@ export class ChatGrpcController {
         senderEmail: m.senderEmail,
         senderAvatar: m.senderAvatar,
         content: m.content,
+        messageType: m.messageType,
         createdAt: m.createdAt.toISOString(),
         channelId: m.channelId,
       })),

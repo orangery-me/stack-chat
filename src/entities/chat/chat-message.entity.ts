@@ -5,6 +5,7 @@ import { applyBaseSchemaTransform } from '@app/helpers/transform';
 
 export enum MessageType {
   TEXT = 'text',
+  SYSTEM = 'system',
   IMAGE = 'image',
   VIDEO = 'video',
   FILE = 'file',
