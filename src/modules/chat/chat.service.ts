@@ -11,6 +11,7 @@ export interface MessageResponse {
   senderEmail: string;
   senderAvatar: string;
   content: string;
+  messageType: string;
   createdAt: Date;
   channelId: string;
 }
@@ -46,6 +47,7 @@ export class ChatService {
       senderEmail: data.userEmail,
       senderAvatar: data.userAvatar,
       content: message.content,
+      messageType: message.type,
       createdAt: message.createdAt,
       channelId: message.channelId,
     };
@@ -59,7 +61,7 @@ export class ChatService {
       .sort({ createdAt: -1 })
       .skip((page - 1) * size)
       .limit(limit)
-      .select(['senderId', 'content', 'createdAt', 'channelId'])
+      .select(['senderId', 'content', 'type', 'createdAt', 'channelId'])
       // Return plain objects instead of Mongoose Documents
       .lean();
 
@@ -74,6 +76,7 @@ export class ChatService {
         senderEmail: '',
         senderAvatar: '',
         content: m.content,
+        messageType: m.type || MessageType.TEXT,
         createdAt: m.createdAt,
         channelId: m.channelId,
       })),
