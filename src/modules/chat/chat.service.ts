@@ -14,6 +14,7 @@ export interface MessageResponse {
   messageType: string;
   createdAt: Date;
   channelId: string;
+  metadata?: Record<string, any>;
 }
 
 export interface GetMessagesResponse {
@@ -32,12 +33,14 @@ export class ChatService {
    * Send a channel message - NO verification, trusts data from stack-api
    */
   async sendChannelMessage(data: SendMessageDto): Promise<MessageResponse> {
+    const metadata = this.normalizeMetadata(data.metadata);
     const message = await this.chatMessageModel.create({
       senderId: data.userId,
       workspaceId: data.workspaceId,
       channelId: data.channelId,
       content: data.content,
       type: data.messageType || MessageType.TEXT,
+      metadata,
     });
 
     return {
@@ -50,6 +53,7 @@ export class ChatService {
       messageType: message.type,
       createdAt: message.createdAt,
       channelId: message.channelId,
+      metadata: message.metadata,
     };
   }
 
@@ -61,7 +65,7 @@ export class ChatService {
       .sort({ createdAt: -1 })
       .skip((page - 1) * size)
       .limit(limit)
-      .select(['senderId', 'content', 'type', 'createdAt', 'channelId'])
+      .select(['senderId', 'content', 'type', 'createdAt', 'channelId', 'metadata'])
       // Return plain objects instead of Mongoose Documents
       .lean();
 
@@ -79,8 +83,19 @@ export class ChatService {
         messageType: m.type || MessageType.TEXT,
         createdAt: m.createdAt,
         channelId: m.channelId,
+        metadata: m.metadata,
       })),
       hasMore,
     };
+  }
+
+  private normalizeMetadata(metadata?: Record<string, any> | string): Record<string, any> | undefined {
+    if (!metadata) return undefined;
+    if (typeof metadata !== 'string') return metadata;
+    try {
+      return JSON.parse(metadata);
+    } catch {
+      return undefined;
+    }
   }
 }
