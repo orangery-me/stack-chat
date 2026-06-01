@@ -8,6 +8,9 @@ RUN apk add --no-cache python3 make g++
 RUN corepack enable
 RUN corepack prepare pnpm@latest --activate
 
+RUN pnpm --version
+RUN cat package.json | grep -A 10 '"pnpm"'
+
 COPY package.json pnpm-lock.yaml ./
 
 ENV HUSKY=0
