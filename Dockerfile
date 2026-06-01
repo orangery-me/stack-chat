@@ -8,10 +8,10 @@ RUN apk add --no-cache python3 make g++
 RUN corepack enable
 RUN corepack prepare pnpm@latest --activate
 
+COPY package.json pnpm-lock.yaml ./
+
 RUN pnpm --version
 RUN cat package.json | grep -A 10 '"pnpm"'
-
-COPY package.json pnpm-lock.yaml ./
 
 ENV HUSKY=0
 RUN pnpm install --frozen-lockfile
