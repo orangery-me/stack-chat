@@ -7,4 +7,5 @@ export class SendMessageDto {
   channelId: string;
   content: string;
   messageType?: string;
+  metadata?: Record<string, any> | string;
 }

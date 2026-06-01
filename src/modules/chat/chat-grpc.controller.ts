@@ -11,6 +11,7 @@ interface SendMessageRequest {
   channelId: string;
   content: string;
   messageType: string;
+  metadata?: string;
 }
 
 interface SendMessageResponse {
@@ -23,6 +24,7 @@ interface SendMessageResponse {
   messageType: string;
   createdAt: string;
   channelId: string;
+  metadata?: string;
 }
 
 interface GetMessagesRequest {
@@ -41,6 +43,7 @@ interface MessageItem {
   messageType: string;
   createdAt: string;
   channelId: string;
+  metadata?: string;
 }
 
 interface GetMessagesResponse {
@@ -63,6 +66,7 @@ export class ChatGrpcController {
       channelId: data.channelId,
       content: data.content,
       messageType: data.messageType,
+      metadata: data.metadata,
     });
 
     return {
@@ -75,6 +79,7 @@ export class ChatGrpcController {
       messageType: result.messageType,
       createdAt: result.createdAt.toISOString(),
       channelId: result.channelId,
+      metadata: this.stringifyMetadata(result.metadata),
     };
   }
 
@@ -96,8 +101,13 @@ export class ChatGrpcController {
         messageType: m.messageType,
         createdAt: m.createdAt.toISOString(),
         channelId: m.channelId,
+        metadata: this.stringifyMetadata(m.metadata),
       })),
       hasMore: result.hasMore,
     };
+  }
+
+  private stringifyMetadata(metadata?: Record<string, any>): string {
+    return metadata ? JSON.stringify(metadata) : '';
   }
 }
