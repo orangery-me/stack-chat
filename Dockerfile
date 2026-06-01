@@ -11,7 +11,7 @@ RUN corepack prepare pnpm@latest --activate
 COPY package.json pnpm-lock.yaml ./
 
 ENV HUSKY=0
-RUN pnpm install --frozen-lockfile --config.ignore-scripts=false --approve-builds=bcrypt,protobufjs,@nestjs/core,@scarf/scarf
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 RUN pnpm build
