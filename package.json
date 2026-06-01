@@ -94,5 +94,8 @@
       "npm run format",
       "git add ."
     ]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["bcrypt", "protobufjs", "@nestjs/core", "@scarf/scarf"]
   }
 }
