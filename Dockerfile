@@ -9,7 +9,9 @@ RUN corepack enable
 RUN corepack prepare pnpm@latest --activate
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+
+ENV HUSKY=0
+RUN pnpm install --frozen-lockfile --config.ignore-scripts=false
 
 COPY . .
 RUN pnpm build
