@@ -25,6 +25,9 @@ interface SendMessageResponse {
   createdAt: string;
   channelId: string;
   metadata?: string;
+  isPinned?: boolean;
+  pinnedAt?: string;
+  pinnedBy?: string;
 }
 
 interface GetMessagesRequest {
@@ -44,6 +47,26 @@ interface MessageItem {
   createdAt: string;
   channelId: string;
   metadata?: string;
+  isPinned?: boolean;
+  pinnedAt?: string;
+  pinnedBy?: string;
+}
+
+interface PinMessageRequest {
+  channelId: string;
+  messageId: string;
+  pinnedBy: string;
+}
+
+interface DeleteMessageRequest {
+  channelId: string;
+  messageId: string;
+  deletedBy: string;
+}
+
+interface DeleteMessageResponse {
+  id: string;
+  channelId: string;
 }
 
 interface GetMessagesResponse {
@@ -80,6 +103,9 @@ export class ChatGrpcController {
       createdAt: result.createdAt.toISOString(),
       channelId: result.channelId,
       metadata: this.stringifyMetadata(result.metadata),
+      isPinned: result.isPinned || false,
+      pinnedAt: result.pinnedAt ? result.pinnedAt.toISOString() : '',
+      pinnedBy: result.pinnedBy || '',
     };
   }
 
@@ -102,12 +128,50 @@ export class ChatGrpcController {
         createdAt: m.createdAt.toISOString(),
         channelId: m.channelId,
         metadata: this.stringifyMetadata(m.metadata),
+        isPinned: m.isPinned || false,
+        pinnedAt: m.pinnedAt ? m.pinnedAt.toISOString() : '',
+        pinnedBy: m.pinnedBy || '',
       })),
       hasMore: result.hasMore,
     };
   }
 
+  @GrpcMethod('ChatService', 'PinMessage')
+  async pinMessage(data: PinMessageRequest): Promise<MessageItem> {
+    const result = await this.chatService.pinMessage(data.channelId, data.messageId, data.pinnedBy);
+    return this.toMessageItem(result);
+  }
+
+  @GrpcMethod('ChatService', 'UnpinMessage')
+  async unpinMessage(data: PinMessageRequest): Promise<MessageItem> {
+    const result = await this.chatService.unpinMessage(data.channelId, data.messageId, data.pinnedBy);
+    return this.toMessageItem(result);
+  }
+
+  @GrpcMethod('ChatService', 'DeleteMessage')
+  async deleteMessage(data: DeleteMessageRequest): Promise<DeleteMessageResponse> {
+    return this.chatService.deleteMessage(data.channelId, data.messageId);
+  }
+
   private stringifyMetadata(metadata?: Record<string, any>): string {
     return metadata ? JSON.stringify(metadata) : '';
+  }
+
+  private toMessageItem(result: any): MessageItem {
+    return {
+      id: result.id,
+      senderId: result.senderId,
+      senderName: result.senderName,
+      senderEmail: result.senderEmail,
+      senderAvatar: result.senderAvatar,
+      content: result.content,
+      messageType: result.messageType,
+      createdAt: result.createdAt.toISOString(),
+      channelId: result.channelId,
+      metadata: this.stringifyMetadata(result.metadata),
+      isPinned: result.isPinned || false,
+      pinnedAt: result.pinnedAt ? result.pinnedAt.toISOString() : '',
+      pinnedBy: result.pinnedBy || '',
+    };
   }
 }

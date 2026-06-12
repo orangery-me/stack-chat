@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ChatMessageEntity, MessageType } from '@app/entities/chat/chat-message.entity';
@@ -15,11 +15,19 @@ export interface MessageResponse {
   createdAt: Date;
   channelId: string;
   metadata?: Record<string, any>;
+  isPinned?: boolean;
+  pinnedAt?: Date | null;
+  pinnedBy?: string | null;
 }
 
 export interface GetMessagesResponse {
   messages: MessageResponse[];
   hasMore: boolean;
+}
+
+export interface DeleteMessageResponse {
+  id: string;
+  channelId: string;
 }
 
 @Injectable()
@@ -54,6 +62,29 @@ export class ChatService {
       createdAt: message.createdAt,
       channelId: message.channelId,
       metadata: message.metadata,
+      isPinned: message.isPinned || false,
+      pinnedAt: message.pinnedAt || null,
+      pinnedBy: message.pinnedBy || null,
+    };
+  }
+
+  async pinMessage(channelId: string, messageId: string, pinnedBy: string): Promise<MessageResponse> {
+    return this.setMessagePinned(channelId, messageId, true, pinnedBy);
+  }
+
+  async unpinMessage(channelId: string, messageId: string, pinnedBy: string): Promise<MessageResponse> {
+    return this.setMessagePinned(channelId, messageId, false, pinnedBy);
+  }
+
+  async deleteMessage(channelId: string, messageId: string): Promise<DeleteMessageResponse> {
+    const message = await this.chatMessageModel.findOneAndDelete({ _id: messageId, channelId }).lean();
+    if (!message) {
+      throw new NotFoundException('Message not found');
+    }
+
+    return {
+      id: message._id?.toString?.() ?? messageId,
+      channelId: message.channelId,
     };
   }
 
@@ -65,7 +96,7 @@ export class ChatService {
       .sort({ createdAt: -1 })
       .skip((page - 1) * size)
       .limit(limit)
-      .select(['senderId', 'content', 'type', 'createdAt', 'channelId', 'metadata'])
+      .select(['senderId', 'content', 'type', 'createdAt', 'channelId', 'metadata', 'isPinned', 'pinnedAt', 'pinnedBy'])
       // Return plain objects instead of Mongoose Documents
       .lean();
 
@@ -84,8 +115,44 @@ export class ChatService {
         createdAt: m.createdAt,
         channelId: m.channelId,
         metadata: m.metadata,
+        isPinned: m.isPinned || false,
+        pinnedAt: m.pinnedAt || null,
+        pinnedBy: m.pinnedBy || null,
       })),
       hasMore,
+    };
+  }
+
+  private async setMessagePinned(
+    channelId: string,
+    messageId: string,
+    isPinned: boolean,
+    pinnedBy: string
+  ): Promise<MessageResponse> {
+    const message = await this.chatMessageModel.findOne({ _id: messageId, channelId });
+    if (!message) {
+      throw new NotFoundException('Message not found');
+    }
+
+    message.isPinned = isPinned;
+    message.pinnedAt = isPinned ? new Date() : null;
+    message.pinnedBy = isPinned ? pinnedBy : null;
+    await message.save();
+
+    return {
+      id: message.id,
+      senderId: message.senderId,
+      senderName: '',
+      senderEmail: '',
+      senderAvatar: '',
+      content: message.content,
+      messageType: message.type || MessageType.TEXT,
+      createdAt: message.createdAt,
+      channelId: message.channelId,
+      metadata: message.metadata,
+      isPinned: message.isPinned || false,
+      pinnedAt: message.pinnedAt || null,
+      pinnedBy: message.pinnedBy || null,
     };
   }
 
