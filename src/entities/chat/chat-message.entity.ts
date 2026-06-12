@@ -33,6 +33,15 @@ export class ChatMessageEntity extends AbstractEntity {
 
   @Prop({ type: Object, required: false })
   metadata: Record<string, any>;
+
+  @Prop({ type: Boolean, default: false, index: true })
+  isPinned: boolean;
+
+  @Prop({ type: Date, required: false, default: null })
+  pinnedAt?: Date | null;
+
+  @Prop({ type: String, required: false, default: null })
+  pinnedBy?: string | null;
 }
 
 export const ChatMessageSchema = SchemaFactory.createForClass(ChatMessageEntity);
